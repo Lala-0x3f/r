@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hone():
-    return redirect('https://www.douyin.com/',code=)
+    return redirect('https://www.douyin.com/',code=302)
 
 @app.route('/i/<path:proxy_file_path>.jpg')
 def get_image_by_path(proxy_file_path):
