@@ -35,7 +35,7 @@ def get_image_by_id(image_id):
     print('json url is'+json_url)
 
     # 使用requests库获取JSON数据
-    response = requests.get(json_url,headers = headers,verify=False)
+    response = requests.get(json_url,headers = headers)
 
     # 检查请求是否成功
     if response.status_code == 200:
