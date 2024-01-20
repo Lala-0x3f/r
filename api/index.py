@@ -30,7 +30,7 @@ def get_image_by_path(proxy_file_path):
 @app.route('/r/<int:image_id>.jpg')
 def get_image_by_id(image_id):
     # 构建JSON文件的URL
-    json_url = f'http://danbooru.donmai.us/posts/{image_id}.json'
+    json_url = f'https://danbooru.donmai.us/posts/{image_id}.json'
     
     print('json url is'+json_url)
 
@@ -46,11 +46,9 @@ def get_image_by_id(image_id):
         file_url = json_data.get('file_url')
 
         if file_url:
-            # 构建完整的图片URL
-            full_image_url = f'https://danbooru.donmai.us{file_url}'
 
             # 使用requests库获取图片数据
-            image_response = requests.get(full_image_url)
+            image_response = requests.get(file_url)
 
             # 检查图片请求是否成功
             if image_response.status_code == 200:
@@ -66,3 +64,4 @@ def get_image_by_id(image_id):
     else:
         return 'Failed to fetch JSON data', 404
 
+app.run(debug=True)
