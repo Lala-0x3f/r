@@ -5,9 +5,6 @@ from io import BytesIO
 app = Flask(__name__)
 
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
 
 @app.route('/i/<path:proxy_file_path>.jpg')
 def get_image_by_path(proxy_file_path):
@@ -35,7 +32,7 @@ def get_image_by_id(image_id):
     print('json url is'+json_url)
 
     # 使用requests库获取JSON数据
-    response = requests.get(json_url,headers = headers,verify=False)
+    response = requests.get(json_url,verify=False)
 
     # 检查请求是否成功
     if response.status_code == 200:
