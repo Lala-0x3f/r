@@ -64,4 +64,3 @@ def get_image_by_id(image_id):
     else:
         return 'Failed to fetch JSON data', 404
 
-app.run(debug=True)
