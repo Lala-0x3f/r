@@ -1,10 +1,12 @@
 import requests
-from flask import Flask, send_file, request
+from flask import Flask, send_file, request, redirect
 from io import BytesIO
 
 app = Flask(__name__)
 
-
+@app.route('/')
+def hone():
+    return redirect('https://www.douyin.com/',code=)
 
 @app.route('/i/<path:proxy_file_path>.jpg')
 def get_image_by_path(proxy_file_path):
@@ -60,4 +62,3 @@ def get_image_by_id(image_id):
             return 'file_url not found in JSON', 404
     else:
         return 'Failed to fetch JSON data', 404
-
