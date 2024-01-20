@@ -35,7 +35,7 @@ def get_image_by_id(image_id):
     print('json url is'+json_url)
 
     # 使用requests库获取JSON数据
-    response = requests.get(json_url,headers = headers,proxies={'https':'http://127.0.0.1:1080'},verify=False)
+    response = requests.get(json_url,headers = headers,verify=False)
 
     # 检查请求是否成功
     if response.status_code == 200:
@@ -47,7 +47,7 @@ def get_image_by_id(image_id):
 
         if file_url:
             # 构建完整的图片URL
-            full_image_url = f'http://danbooru.donmai.us{file_url}'
+            full_image_url = f'https://danbooru.donmai.us{file_url}'
 
             # 使用requests库获取图片数据
             image_response = requests.get(full_image_url)
