@@ -5,10 +5,21 @@ from random import randint
 import re
 
 app = Flask(__name__)
+def fuzzy_matching(tag:str)->str:
+    if tag:
+        json_url=f"https://danbooru.donmai.us/autocomplete.json?search[type]=tag_query&search[query]={tag}"
+        response = requests.get(json_url)
+        if response.status_code == 200:
+            value = response.json()[0]["value"]
+            print("match to tag:",value)
+            
+            return value
+    else:
+        return
 
-
-def fetch_single_img(response_json):
-    file_url = response_json.get("preview_file_url")
+def fetch_single_img(response_json:dict[str, any]):
+    # file_url = response_json.get("file_url")
+    file_url = response_json['media_asset']['variants'][1]['url']
 
     if file_url:
         # 使用requests库获取图片数据
@@ -74,9 +85,10 @@ def get_img_by_search(ratio: str, search_tag: str):
     if re.match(r"^\d+-\d+$", ratio):
         min_img_id = randint(0, 7000000)
         max_img_id = min_img_id + 1000000
-        img_tag = search_tag  # TODO:模糊匹配
+        img_tag = fuzzy_matching(search_tag)
         img_ratio = ratio.replace("-", "/")
-        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E50+ratio:{img_ratio}+rating:s,g+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
+        min_score = 150
+        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E{min_score}+ratio:{img_ratio}+rating:s,g+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
         if json_url:
             print(json_url)
             print("Fetching...")
