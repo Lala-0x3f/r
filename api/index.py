@@ -95,5 +95,3 @@ def get_img_by_search(ratio: str, search_tag: str):
     else:
         return "Error ratio", 404
 
-
-app.run(debug=True)
