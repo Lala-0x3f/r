@@ -4,6 +4,8 @@ from io import BytesIO
 from random import randint
 import re
 
+Rating = "s,g,q"
+
 app = Flask(__name__)
 def fuzzy_matching(tag:str)->str:
     if tag:
@@ -88,14 +90,19 @@ def get_img_by_search(ratio: str, search_tag: str):
         img_tag = fuzzy_matching(search_tag)
         img_ratio = ratio.replace("-", "/")
         min_score = 150
-        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E{min_score}+ratio:{img_ratio}+rating:s,g+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
-        if json_url:
-            print(json_url)
+        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E{min_score}+ratio:{img_ratio}+rating:{Rating}+limit:1+{img_tag}"
+        json_url_lim = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E{min_score}+ratio:{img_ratio}+rating:{Rating}+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
+        if json_url_lim:
+            print(json_url_lim)
             print("Fetching...")
-            response = requests.get(json_url)
-            if response.status_code != 200:
-                response = requests.get(json_url, verify=False)
 
+            response = requests.get(json_url_lim) 
+            #带id限制
+
+            if response.status_code != 200:
+                response = requests.get(json_url) 
+                #可能会与id限制错开，所以再加一个无id限制的
+            
             # 检查请求是否成功
             if response.status_code == 200:
                 return fetch_single_img(response.json())
