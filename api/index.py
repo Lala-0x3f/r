@@ -7,8 +7,8 @@ import re
 app = Flask(__name__)
 
 
-def fetch_single_img(json):
-    file_url = json.get("preview_file_url")
+def fetch_single_img(response_json):
+    file_url = response_json.get("preview_file_url")
 
     if file_url:
         # 使用requests库获取图片数据
@@ -63,20 +63,20 @@ def get_image_by_id(image_id):
 
     # 检查请求是否成功
     if response.status_code == 200:
-        return fetch_single_img(response.json)
+        return fetch_single_img(response.json())
 
     else:
         return "Failed to fetch JSON data", 404
 
 
-@app.route("/<str:ratio>/<str:search_tag>.jpg")
+@app.route("/<string:ratio>/<string:search_tag>.jpg")
 def get_img_by_search(ratio: str, search_tag: str):
     if re.match(r"^\d+-\d+$", ratio):
         min_img_id = randint(0, 7000000)
         max_img_id = min_img_id + 1000000
         img_tag = search_tag  # TODO:模糊匹配
         img_ratio = ratio.replace("-", "/")
-        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=ratio:{img_ratio}+rating:s,g+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
+        json_url = f"https://danbooru.donmai.us/posts/random.json?tags=score:%3E50+ratio:{img_ratio}+rating:s,g+limit:1+id:%3E{min_img_id}+id:%3C{max_img_id}+{img_tag}"
         if json_url:
             print(json_url)
             print("Fetching...")
@@ -86,7 +86,7 @@ def get_img_by_search(ratio: str, search_tag: str):
 
             # 检查请求是否成功
             if response.status_code == 200:
-                return fetch_single_img(response.json)
+                return fetch_single_img(response.json())
 
             else:
                 return "Failed to fetch JSON data", 404
@@ -94,3 +94,6 @@ def get_img_by_search(ratio: str, search_tag: str):
             return "Error requery Format", 404
     else:
         return "Error ratio", 404
+
+
+app.run(debug=True)
