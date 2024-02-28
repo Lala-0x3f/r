@@ -251,5 +251,3 @@ def get_image_by_tag_E(ratio: str, search_tag: str):
     Rating = r
     return x
 
-
-app.run(debug=True)
