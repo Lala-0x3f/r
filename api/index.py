@@ -4,25 +4,70 @@ from io import BytesIO
 from random import randint
 from geoip2.database import Reader
 import re
+from PIL import Image
+
+Quality = 1
+# 质量控制
+# 0：180*180
+# 1: 360*360
+# ......
 
 Rating = "s,g,q"
+# 默认过滤级别
+
 Similarity = 0.15
+# 图片比例最大差异
 
 app = Flask(__name__)
 
-r = Reader('api/geoip/Country.mmdb')
+r = Reader("api/geoip/Country.mmdb")
+
+
+def cut_by_ratio(input_img: BytesIO, post: dict, ratio: float) -> BytesIO:
+
+    source_w = post["media_asset"]["variants"][Quality]["width"]
+    source_h = post["media_asset"]["variants"][Quality]["height"]
+    img_ratio = source_w / source_h
+
+    if img_ratio == ratio:
+        return input_img
+
+    print(f"🌾Cutting image to fit the ratio -->({ratio})")
+    i = Image.open(input_img)
+    output = BytesIO()
+
+    print(f"Source Size is {source_w} ✖️ {source_h} --> ratio({img_ratio})")
+
+    if img_ratio > ratio:
+        l = source_h * ratio
+        box = ((source_w - l) / 2, 0, (source_w + l) / 2, source_h)
+    else:
+        h = source_w / ratio
+        box = (0, (source_h - h) / 2, source_w, (source_h + h) / 2)
+
+    cropped_img = i.crop(box)
+    cropped_img.save(output, format="JPEG")
+
+    return output
+
 
 def get_user_ip():
     user_ip = request.remote_addr
     try:
         c = r.country(user_ip).country.name
     except Exception:
-        c = f'No Geoip data match user ip {str(Exception)}'
+        c = f"No Geoip data match user ip {str(Exception)}"
     return f"🧭Request from ip:[{user_ip}] --> {c} "
 
+
+def ratio_parse(ratio_str: str) -> float:
+    mw, mh = map(int, ratio_str.split("/"))
+    return mw / mh
+
+
 def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity: float) -> bool:
-    mw, mh = map(int, match_ratio_str.split("/"))
-    match_ratio = mw / mh
+
+    match_ratio = ratio_parse(match_ratio_str)
     h = post["image_height"]
     w = post["image_width"]
     ratio: float = w / h
@@ -53,32 +98,39 @@ def fuzzy_matching(tag: str) -> str:
         return ""
 
 
-def fetch_single_img(response_json: dict[str, any]):
-    print("fetch_single_img start")
-    # file_url = response_json.get("file_url")
-    file_url = response_json["media_asset"]["variants"][1]["url"]
+def get_single_img_data(post: dict[str, any]):
+    file_url = post["media_asset"]["variants"][Quality]["url"]
     print("🎯URL -->", file_url)
-    print("🔢id -->", response_json["id"])
-    print("💖favourite -->", response_json["fav_count"])
-    if file_url:
-        # 使用requests库获取图片数据
-        image_response = requests.get(file_url)
+    print("🔢id -->", post["id"])
+    print("💖favourite -->", post["fav_count"])
 
-        # 检查图片请求是否成功
-        if image_response.status_code == 200:
-            # 将图片数据转换为BytesIO对象
-            image_data = BytesIO(image_response.content)
+    image_response = requests.get(file_url)
 
-            # 使用send_file函数发送图片
-            print("😃SUCCESS!")
-            return send_file(image_data, mimetype="image/jpeg")
-        else:
-            return "Failed to fetch image", 404
-    else:
-        return "file url not found in JSON", 404
+    # 将图片数据转换为BytesIO对象
+    image_data = BytesIO(image_response.content)
+
+    # 使用send_file函数发送图片
+    print("😃SUCCESS!")
+    return image_data
+
+
+def fetch_single_img(post: dict[str, any]):
+    print("fetch_single_img start")
+    try:
+        return send_file(get_single_img_data(post), mimetype="image/jpeg")
+    except:
+        print("Error fetch image data")
+        return "Error fetch image data", 404
+    
+def fetch_single_img_and_crop(post:dict,ratio:float):
+    try:
+        i = cut_by_ratio(get_single_img_data(post),post,ratio)
+        return send_file(i,mimetype="image/jpeg")
+    except:
+        return "Error cant not fetching img or crop img", 404
+
 
 @app.route("/favicon.ico")
-
 @app.route("/")
 def hone():
     print(get_user_ip())
@@ -157,7 +209,8 @@ def get_img_by_search(ratio: str, search_tag: str):
                 else:
                     posts_len = len(posts)
                     print("Get ", posts_len, " post(s)")
-                    return fetch_single_img(posts[randint(0, posts_len - 1)])
+                    randpost = posts[randint(0, posts_len - 1)]
+                    return fetch_single_img_and_crop(randpost,ratio_parse(img_ratio))
         else:
             return "Failed to fetch posts data", 404
 
@@ -181,9 +234,13 @@ def get_img_by_search(ratio: str, search_tag: str):
     else:
         return "Error ratio", 404
 
+
 @app.route("/e/<string:ratio>/<string:search_tag>.jpg")
 def get_image_by_tag_E(ratio: str, search_tag: str):
     global Rating
-    Rating = 'e,q'
+    r = Rating
+    Rating = "e,q"
     print("✨ a other mode ...")
-    return get_img_by_search(ratio,search_tag)
+    x = get_img_by_search(ratio, search_tag)
+    Rating = r
+    return x
