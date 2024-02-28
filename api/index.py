@@ -2,14 +2,23 @@ import requests
 from flask import Flask, send_file, request, redirect
 from io import BytesIO
 from random import randint
+from geoip2.database import Reader
 import re
-
-from api.get_user_ip import get_user_ip
 
 Rating = "s,g,q"
 Similarity = 0.15
 
 app = Flask(__name__)
+
+r = Reader('api/geoip/Country.mmdb')
+
+def get_user_ip():
+    user_ip = request.remote_addr
+    try:
+        c = r.country(user_ip).country.name
+    except Exception:
+        c = f'No Geoip data match user ip {str(Exception)}'
+    return f"🧭Request from ip:[{user_ip}] --> {c} "
 
 def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity: float) -> bool:
     mw, mh = map(int, match_ratio_str.split("/"))
