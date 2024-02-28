@@ -6,7 +6,7 @@ from geoip2.database import Reader
 import re
 from PIL import Image
 
-Quality = 2
+Quality = 1
 # 质量控制
 # 0：180*180
 # 1: 360*360
