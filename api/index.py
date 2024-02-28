@@ -9,18 +9,21 @@ Similarity = 0.15
 
 app = Flask(__name__)
 
+def get_user_ip():
+    user_ip = request.remote_addr
+    return f"🧭Request from {user_ip}"
 
-def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity:float) -> bool:
-    mw ,mh = map(int, match_ratio_str.split("/"))
+def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity: float) -> bool:
+    mw, mh = map(int, match_ratio_str.split("/"))
     match_ratio = mw / mh
     h = post["image_height"]
     w = post["image_width"]
-    ratio:float = w / h
-    if abs(ratio - match_ratio) <= similarity :
+    ratio: float = w / h
+    if abs(ratio - match_ratio) <= similarity:
         print("------------------")
-        print("🔢id -->",post["id"])
-        print("💖favourite -->",post["fav_count"])
-        print("🪢Fuzzy Ratio -->",abs(ratio - match_ratio))
+        print("🔢id -->", post["id"])
+        print("💖favourite -->", post["fav_count"])
+        print("🪢Fuzzy Ratio -->", abs(ratio - match_ratio))
         print("------------------")
         return True
     else:
@@ -47,9 +50,9 @@ def fetch_single_img(response_json: dict[str, any]):
     print("fetch_single_img start")
     # file_url = response_json.get("file_url")
     file_url = response_json["media_asset"]["variants"][1]["url"]
-    print("🎯URL -->",file_url)
-    print("🔢id -->",response_json["id"])
-    print("💖favourite -->",response_json["fav_count"])
+    print("🎯URL -->", file_url)
+    print("🔢id -->", response_json["id"])
+    print("💖favourite -->", response_json["fav_count"])
     if file_url:
         # 使用requests库获取图片数据
         image_response = requests.get(file_url)
@@ -70,11 +73,13 @@ def fetch_single_img(response_json: dict[str, any]):
 
 @app.route("/")
 def hone():
+    print(get_user_ip())
     return redirect("https://www.douyin.com/", code=302)
 
 
 @app.route("/i/<path:proxy_file_path>.jpg")
 def get_image_by_path(proxy_file_path):
+    print(get_user_ip())
     full_image_url = f"https://cdn.donmai.us/{proxy_file_path}.jpg"
     # 使用requests库获取远程图片数据
     response = requests.get(full_image_url)
@@ -91,6 +96,7 @@ def get_image_by_path(proxy_file_path):
 
 @app.route("/r/<int:image_id>.jpg")
 def get_image_by_id(image_id):
+    print(get_user_ip())
     # 构建JSON文件的URL
     json_url = f"https://danbooru.donmai.us/posts/{image_id}.json"
 
@@ -113,6 +119,8 @@ def get_image_by_id(image_id):
 @app.route("/<string:ratio>/<string:search_tag>.jpg")
 def get_img_by_search(ratio: str, search_tag: str):
     print("===================================")
+    print(get_user_ip())
+    print("===================================")
     if re.match(r"^\d+-\d+$", ratio):
 
         img_tag = fuzzy_matching(search_tag)
@@ -130,16 +138,21 @@ def get_img_by_search(ratio: str, search_tag: str):
         if response.ok:
 
             if response.json():
-                posts = list(filter(lambda x: fuzzy_ratio_get(x,img_ratio,Similarity),response.json()))
+                posts = list(
+                    filter(
+                        lambda x: fuzzy_ratio_get(x, img_ratio, Similarity),
+                        response.json(),
+                    )
+                )
                 if len(posts) == 0:
                     print("❗Cat not get any data searching in RANK")
                 else:
                     posts_len = len(posts)
-                    print("Get ",posts_len," post(s)")
-                    return fetch_single_img(posts[randint(0,posts_len-1)])
+                    print("Get ", posts_len, " post(s)")
+                    return fetch_single_img(posts[randint(0, posts_len - 1)])
         else:
             return "Failed to fetch posts data", 404
-        
+
         try:
             response = requests.get(json_url_score)
             print("Get posts by SCORES...")
@@ -154,9 +167,15 @@ def get_img_by_search(ratio: str, search_tag: str):
                 print("❗Cat not get any data searching in SCORES")
                 return "No Posts", 404
         except Exception as e:
-            print("Error",e)
+            print("Error", e)
             return str(e), 404
-      
+
     else:
         return "Error ratio", 404
 
+@app.route("/e/<string:ratio>/<string:search_tag>.jpg")
+def get_image_by_tag_E(ratio: str, search_tag: str):
+    global Rating
+    Rating = 'e,q'
+    print("✨ a other mode ...")
+    return get_img_by_search(ratio,search_tag)
