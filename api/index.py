@@ -6,7 +6,7 @@ from geoip2.database import Reader
 import re
 from PIL import Image
 
-Quality = 1
+Quality = 2
 # 质量控制
 # 0：180*180
 # 1: 360*360
@@ -23,7 +23,7 @@ app = Flask(__name__)
 r = Reader("api/geoip/Country.mmdb")
 
 
-def cut_by_ratio(input_img: BytesIO, post: dict, ratio: float) -> BytesIO:
+def cut_by_ratio(input_img: BytesIO, post: dict, ratio: float):
 
     source_w = post["media_asset"]["variants"][Quality]["width"]
     source_h = post["media_asset"]["variants"][Quality]["height"]
@@ -32,21 +32,27 @@ def cut_by_ratio(input_img: BytesIO, post: dict, ratio: float) -> BytesIO:
     if img_ratio == ratio:
         return input_img
 
-    print(f"🌾Cutting image to fit the ratio -->({ratio})")
-    i = Image.open(input_img)
-    output = BytesIO()
+    output = input_img
 
-    print(f"Source Size is {source_w} ✖️ {source_h} --> ratio({img_ratio})")
+    print(f"🌾Cutting image to fit the ratio [{img_ratio}]-->({ratio})")
+    i = Image.open(input_img)
+    
 
     if img_ratio > ratio:
         l = source_h * ratio
+        h = source_h - 1
         box = ((source_w - l) / 2, 0, (source_w + l) / 2, source_h)
     else:
         h = source_w / ratio
+        l = source_w - 1
         box = (0, (source_h - h) / 2, source_w, (source_h + h) / 2)
 
+    print(f"Cutting img {source_w} * {source_h} --> {l} * {h}")
+    print(f"Box is {box}")
     cropped_img = i.crop(box)
     cropped_img.save(output, format="JPEG")
+
+    output.seek(0)
 
     return output
 
@@ -109,7 +115,6 @@ def get_single_img_data(post: dict[str, any]):
     # 将图片数据转换为BytesIO对象
     image_data = BytesIO(image_response.content)
 
-    # 使用send_file函数发送图片
     print("😃SUCCESS!")
     return image_data
 
@@ -121,16 +126,17 @@ def fetch_single_img(post: dict[str, any]):
     except:
         print("Error fetch image data")
         return "Error fetch image data", 404
-    
-def fetch_single_img_and_crop(post:dict,ratio:float):
+
+
+def fetch_single_img_and_crop(post: dict, ratio: float):
     try:
-        i = cut_by_ratio(get_single_img_data(post),post,ratio)
-        return send_file(i,mimetype="image/jpeg")
-    except:
+        i = cut_by_ratio(get_single_img_data(post), post, ratio)
+        return send_file(i, mimetype="image/jpeg")
+    except Exception as e:
+        print(str(e))
         return "Error cant not fetching img or crop img", 404
 
 
-@app.route("/favicon.ico")
 @app.route("/")
 def hone():
     print(get_user_ip())
@@ -210,7 +216,7 @@ def get_img_by_search(ratio: str, search_tag: str):
                     posts_len = len(posts)
                     print("Get ", posts_len, " post(s)")
                     randpost = posts[randint(0, posts_len - 1)]
-                    return fetch_single_img_and_crop(randpost,ratio_parse(img_ratio))
+                    return fetch_single_img_and_crop(randpost, ratio_parse(img_ratio))
         else:
             return "Failed to fetch posts data", 404
 
@@ -244,3 +250,6 @@ def get_image_by_tag_E(ratio: str, search_tag: str):
     x = get_img_by_search(ratio, search_tag)
     Rating = r
     return x
+
+
+app.run(debug=True)
