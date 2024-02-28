@@ -41,9 +41,9 @@ def fuzzy_matching(tag: str) -> str:
         except:
             print("Error in fuzzy matching tag value of ", tag)
             print(response.json())
-            return
+            return ""
     else:
-        return
+        return ""
 
 
 def fetch_single_img(response_json: dict[str, any]):
@@ -70,6 +70,7 @@ def fetch_single_img(response_json: dict[str, any]):
     else:
         return "file url not found in JSON", 404
 
+@app.route("/favicon.ico")
 
 @app.route("/")
 def hone():
