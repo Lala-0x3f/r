@@ -4,14 +4,12 @@ from io import BytesIO
 from random import randint
 import re
 
+from get_user_ip import get_user_ip
+
 Rating = "s,g,q"
 Similarity = 0.15
 
 app = Flask(__name__)
-
-def get_user_ip():
-    user_ip = request.remote_addr
-    return f"🧭Request from {user_ip}"
 
 def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity: float) -> bool:
     mw, mh = map(int, match_ratio_str.split("/"))
