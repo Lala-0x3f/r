@@ -4,7 +4,7 @@ from io import BytesIO
 from random import randint
 import re
 
-from get_user_ip import get_user_ip
+from api.get_user_ip import get_user_ip
 
 Rating = "s,g,q"
 Similarity = 0.15
