@@ -5,17 +5,18 @@ from random import randint
 from geoip2.database import Reader
 import re
 from PIL import Image
+from os import environ
 
-Quality = 1
+Quality = int(environ.get("QUALITY",1))
 # 质量控制
 # 0：180*180
 # 1: 360*360
 # ......
 
-Rating = "s,g,q"
+Rating = environ.get("RATING","g,s,q")
 # 默认过滤级别
 
-Similarity = 0.15
+Similarity = float(environ.get("SIMILARITY",0.15))
 # 图片比例最大差异
 
 app = Flask(__name__)
