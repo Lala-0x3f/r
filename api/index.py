@@ -190,7 +190,10 @@ def get_img_by_search(ratio: str, search_tag: str):
     print("===================================")
     if re.match(r"^\d+-\d+$", ratio):
 
-        img_tag = fuzzy_matching(search_tag)
+        if search_tag == "_":
+            search_tag == ""
+        else:
+            img_tag = fuzzy_matching(search_tag)
         img_ratio = ratio.replace("-", "/")
 
         json_url_rank = f"https://danbooru.donmai.us/posts.json?tags=rating:{Rating}+limit:10+{img_tag}+order:rank"
