@@ -40,15 +40,15 @@ def cut_by_ratio(input_img: BytesIO, post: dict, ratio: float):
     
 
     if img_ratio > ratio:
-        l = source_h * ratio
+        l = int(source_h * ratio)
         h = source_h - 1
-        box = ((source_w - l) / 2, 0, (source_w + l) / 2, source_h)
+        box = ((source_w - l) / 2, 0, (source_w + l) / 2, h)
     else:
-        h = source_w / ratio
+        h = int(source_w / ratio)
         l = source_w - 1
-        box = (0, (source_h - h) / 2, source_w, (source_h + h) / 2)
+        box = (0, (source_h - h) / 2, l, (source_h + h) / 2)
 
-    print(f"Cutting img {source_w} * {source_h} --> {l} * {h}")
+    print(f"✂️ Cutting img {source_w} * {source_h} --> {l} * {h}")
     print(f"Box is {box}")
     cropped_img = i.crop(box)
     cropped_img.save(output, format="JPEG")
@@ -167,7 +167,7 @@ def get_image_by_id(image_id):
     # 构建JSON文件的URL
     json_url = f"https://danbooru.donmai.us/posts/{image_id}.json"
 
-    print("json url is" + json_url)
+    print("Post json url -->" + json_url)
 
     # 使用requests库获取JSON数据
     response = requests.get(json_url)
