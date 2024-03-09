@@ -136,12 +136,46 @@ def fetch_single_img_and_crop(post: dict, ratio: float):
     except Exception as e:
         print(str(e))
         return "Error cant not fetching img or crop img", 404
-
+    
+def compress_png_to_webp(png_bytesio):
+    # 从BytesIO中读取PNG图像
+    image = Image.open(png_bytesio)
+    
+    # 创建一个新的BytesIO对象来保存WebP图像数据
+    webp_bytesio = BytesIO()
+    
+    # 将PNG图像转换为WebP图像并保存到webp_bytesio中
+    image.save(webp_bytesio, 'WEBP', quality=80)
+    
+    # 重置文件指针以便后续读取
+    webp_bytesio.seek(0)
+    
+    return webp_bytesio
 
 @app.route("/")
 def hone():
     print(get_user_ip())
     return redirect("https://www.douyin.com/", code=302)
+
+@app.route("/attachments/<path:file_path>")
+def proxy_discord_cdn(file_path):
+    print(get_user_ip())
+    query_params = request.args
+    query_url = file_path + '?' + '&'.join([f'{key}={value}' for key, value in query_params.items()])
+    full_image_url = f"https://cdn.discordapp.com/attachments/{query_url}"
+    # print("aaaaaaaaaa -> ",full_image_url)
+    # 使用requests库获取远程图片数据
+    response = requests.get(full_image_url)
+    # 检查请求是否成功
+    if response.status_code == 200:
+        # 将图片数据转换为BytesIO对象
+        image_data = BytesIO(response.content)
+
+        # 使用send_file函数发送图片
+        return send_file(compress_png_to_webp(image_data), mimetype="image/jpeg")
+    else:
+        return "Failed to fetch image", 404
+ 
 
 
 @app.route("/i/<path:proxy_file_path>.jpg")
