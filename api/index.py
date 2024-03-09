@@ -157,7 +157,7 @@ def hone():
     print(get_user_ip())
     return redirect("https://www.douyin.com/", code=302)
 
-@app.route("/attachments/<path:file_path>")
+@app.route("discordcdn/attachments/<path:file_path>")
 def proxy_discord_cdn(file_path):
     print(get_user_ip())
     query_params = request.args
