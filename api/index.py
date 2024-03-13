@@ -7,6 +7,8 @@ import re
 from PIL import Image
 from os import environ
 
+End_point = str(environ.get("ENDPOINT","danbooru.donmai.us"))
+
 Quality = int(environ.get("QUALITY",1))
 # 质量控制
 # 0：180*180
@@ -91,7 +93,7 @@ def fuzzy_ratio_get(post: dict, match_ratio_str: str, similarity: float) -> bool
 
 def fuzzy_matching(tag: str) -> str:
     if tag:
-        json_url = f"https://danbooru.donmai.us/autocomplete.json?search[type]=tag_query&search[query]={tag}"
+        json_url = f"https://{End_point}/autocomplete.json?search[type]=tag_query&search[query]={tag}"
         response = requests.get(json_url)
         try:
             value = response.json()[0]["value"]
@@ -157,7 +159,7 @@ def hone():
     print(get_user_ip())
     return redirect("https://www.douyin.com/", code=302)
 
-@app.route("discordcdn/attachments/<path:file_path>")
+@app.route("attachments/<path:file_path>")
 def proxy_discord_cdn(file_path):
     print(get_user_ip())
     query_params = request.args
@@ -199,7 +201,7 @@ def get_image_by_path(proxy_file_path):
 def get_image_by_id(image_id):
     print(get_user_ip())
     # 构建JSON文件的URL
-    json_url = f"https://danbooru.donmai.us/posts/{image_id}.json"
+    json_url = f"https://{End_point}/posts/{image_id}.json"
 
     print("Post json url -->" + json_url)
 
@@ -230,8 +232,8 @@ def get_img_by_search(ratio: str, search_tag: str):
             img_tag = fuzzy_matching(search_tag)
         img_ratio = ratio.replace("-", "/")
 
-        json_url_rank = f"https://danbooru.donmai.us/posts.json?tags=rating:{Rating}+limit:10+{img_tag}+order:rank"
-        json_url_score = f"https://danbooru.donmai.us/posts.json?tags=rating:{Rating}+limit:1+{img_tag}+order:score+ratio:{img_ratio}"
+        json_url_rank = f"https://{End_point}/posts.json?tags=rating:{Rating}+limit:10+{img_tag}+order:rank"
+        json_url_score = f"https://{End_point}/posts.json?tags=rating:{Rating}+limit:1+{img_tag}+order:score+ratio:{img_ratio}"
 
         print(json_url_rank)
         print("Fetching images order by RANK...")
