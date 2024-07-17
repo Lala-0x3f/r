@@ -291,7 +291,7 @@ def get_image_by_tag_E(ratio: str, search_tag: str):
     Rating = r
     return x
 
-@app.route("/r/<string:ratio>.jpg")
+@app.route("/<string:ratio>.jpg")
 def random_image(ratio: str):
     print("===================================")
     print(get_user_ip())
