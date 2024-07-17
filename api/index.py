@@ -291,3 +291,45 @@ def get_image_by_tag_E(ratio: str, search_tag: str):
     Rating = r
     return x
 
+@app.route("/r/<string:ratio>.jpg")
+def random_image(ratio: str):
+    print("===================================")
+    print(get_user_ip())
+    print("===================================")
+    if re.match(r"^\d+-\d+$", ratio):
+        img_ratio = ratio.replace("-", "/")
+
+        json_url_random = f"https://{End_point}/posts.json?tags=rating:{Rating}+order:random"
+
+        print(json_url_random)
+        print("Fetching images order by RANDOM🎲...")
+
+        response = requests.get(json_url_random)
+
+        # 检查请求是否成功
+        if response.ok:
+
+            if response.json():
+                posts = list(
+                    filter(
+                        lambda x: fuzzy_ratio_get(x, img_ratio, Similarity),
+                        response.json(),
+                    )
+                )
+                if len(posts) == 0:
+                    print("❗Cat not get any data searching in RANDOM🎲")
+                else:
+                    posts_len = len(posts)
+                    print("Get ", posts_len, " post(s)")
+                    randpost = posts[randint(0, posts_len - 1)]
+                    return fetch_single_img_and_crop(randpost, ratio_parse(img_ratio))
+        else:
+            return "Failed to fetch posts data", 404
+    else:
+        return "Error ratio", 404
+    
+
+
+
+
+app.run(debug=True)
