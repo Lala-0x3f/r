@@ -331,5 +331,3 @@ def random_image(ratio: str):
 
 
 
-
-app.run(debug=True)
